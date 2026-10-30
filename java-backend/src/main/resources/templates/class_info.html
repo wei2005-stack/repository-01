@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head('班级管理 - 学籍管理系统')}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h2><i class="bi bi-door-open"></i> 班级管理</h2>
+        <a href="/classes/add" class="btn btn-primary"
+           th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+            <i class="bi bi-plus-circle"></i> 新增班级
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>班级编号</th>
+                        <th>班级名称</th>
+                        <th>所属专业</th>
+                        <th>所属院系</th>
+                        <th>入学年份</th>
+                        <th>学生人数</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="cls : ${classes}">
+                        <td th:text="${cls.classId}"></td>
+                        <td th:text="${cls.className}"></td>
+                        <td th:text="${cls.majorName}"></td>
+                        <td th:text="${cls.deptName}"></td>
+                        <td th:text="${cls.enrollYear}"></td>
+                        <td><span class="badge bg-info" th:text="${cls.studentCount}"></span></td>
+                        <td>
+                            <a th:href="${'/classes/' + cls.classId + '/edit'}"
+                               class="btn btn-sm btn-outline-primary btn-action"
+                               th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+                                <i class="bi bi-pencil"></i> 编辑
+                            </a>
+                            <a th:href="${'/classes/' + cls.classId + '/delete'}"
+                               class="btn btn-sm btn-outline-danger btn-action"
+                               onclick="return confirm('确定删除该班级吗？')"
+                               th:if="${currentUser.role == 'admin'}">
+                                <i class="bi bi-trash"></i> 删除
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

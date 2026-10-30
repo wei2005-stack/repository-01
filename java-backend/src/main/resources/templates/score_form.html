@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head(${action == 'edit' ? '编辑成绩 - 学籍管理系统' : '录入成绩 - 学籍管理系统'})}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header">
+        <h2><i class="bi bi-clipboard-data"></i> <span th:text="${action == 'edit' ? '编辑' : '录入'}"></span>成绩</h2>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" class="row g-3" id="scoreForm">
+                <div class="col-md-6">
+                    <label class="form-label">学生</label>
+                    <th:block th:if="${action == 'edit'}">
+                        <input type="text" class="form-control" th:value="${score.stuId + ' - ' + score.studentName}" disabled>
+                        <input type="hidden" name="stuId" th:value="${score.stuId}">
+                    </th:block>
+                    <th:block th:unless="${action == 'edit'}">
+                        <input type="hidden" name="stuId" id="stuId" value="">
+                        <div class="dropdown-wrapper">
+                            <input type="text" id="stuSearch" class="form-control" placeholder="输入学号或姓名搜索学生..."
+                                   autocomplete="off" required>
+                            <div id="stuDropdown" class="dropdown-list">
+                                <div class="dropdown-item-custom" th:each="s : ${students}"
+                                     th:attr="data-id=${s.stuId},data-text=${s.stuId + ' - ' + s.name}">
+                                    <strong th:text="${s.stuId}"></strong> - <span th:text="${s.name}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">课程</label>
+                    <th:block th:if="${action == 'edit'}">
+                        <input type="text" class="form-control" th:value="${score.courseId + ' - ' + score.courseName}" disabled>
+                        <input type="hidden" name="courseId" th:value="${score.courseId}">
+                    </th:block>
+                    <th:block th:unless="${action == 'edit'}">
+                        <input type="hidden" name="courseId" id="courseId" value="">
+                        <div class="dropdown-wrapper">
+                            <input type="text" id="courseSearch" class="form-control" placeholder="输入课程名搜索课程..."
+                                   autocomplete="off" required>
+                            <div id="courseDropdown" class="dropdown-list">
+                                <div class="dropdown-item-custom" th:each="c : ${courses}"
+                                     th:attr="data-id=${c.courseId},data-text=${c.courseId + ' - ' + c.courseName}">
+                                    <strong th:text="${c.courseId}"></strong> - <span th:text="${c.courseName}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">成绩</label>
+                    <input type="number" step="0.1" min="0" max="100" name="score" class="form-control"
+                           th:value="${score != null ? score.score : ''}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">学期</label>
+                    <input type="text" name="semester" class="form-control"
+                           placeholder="如: 2024-2025-1"
+                           th:value="${score != null ? score.semester : ''}"
+                           th:readonly="${action == 'edit'}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">考试类型</label>
+                    <select name="examType" class="form-select" required th:disabled="${action == 'edit'}">
+                        <option value="期末" th:selected="${score != null and score.examType == '期末'}">期末</option>
+                        <option value="补考" th:selected="${score != null and score.examType == '补考'}">补考</option>
+                        <option value="重修" th:selected="${score != null and score.examType == '重修'}">重修</option>
+                    </select>
+                    <input type="hidden" name="examType" th:if="${action == 'edit'}" th:value="${score.examType}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> 保存
+                    </button>
+                    <a href="/scores/" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> 返回
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+
+<style>
+.dropdown-wrapper {
+    position: relative;
+}
+.dropdown-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+.dropdown-list.show {
+    display: block;
+}
+.dropdown-item-custom {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+.dropdown-item-custom:hover {
+    background-color: #e9ecef;
+}
+.dropdown-item-custom.selected {
+    background-color: #0d6efd;
+    color: #fff;
+}
+</style>
+
+<script>
+function setupDropdown(searchId, dropdownId, hiddenId) {
+    const searchInput = document.getElementById(searchId);
+    const dropdown = document.getElementById(dropdownId);
+    const hiddenInput = document.getElementById(hiddenId);
+    const items = dropdown.querySelectorAll('.dropdown-item-custom');
+
+    if (!searchInput || !dropdown) return;
+
+    // 显示下拉列表
+    searchInput.addEventListener('focus', function() {
+        dropdown.classList.add('show');
+        filterItems();
+    });
+
+    // 输入时筛选
+    searchInput.addEventListener('input', function() {
+        filterItems();
+        hiddenInput.value = '';
+    });
+
+    // 点击外部关闭
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+
+    // 选择选项
+    items.forEach(item => {
+        item.addEventListener('click', function() {
+            searchInput.value = this.getAttribute('data-text');
+            hiddenInput.value = this.getAttribute('data-id');
+            dropdown.classList.remove('show');
+
+            // 高亮选中项
+            items.forEach(i => i.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+
+    // 筛选函数
+    function filterItems() {
+        const keyword = searchInput.value.toLowerCase();
+        let hasVisible = false;
+
+        items.forEach(item => {
+            const text = item.getAttribute('data-text').toLowerCase();
+            if (!keyword || text.includes(keyword)) {
+                item.style.display = '';
+                hasVisible = true;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        if (hasVisible) {
+            dropdown.classList.add('show');
+        } else {
+            dropdown.classList.remove('show');
+        }
+    }
+
+    // 键盘导航
+    searchInput.addEventListener('keydown', function(e) {
+        const visibleItems = Array.from(items).filter(i => i.style.display !== 'none');
+        const currentIndex = visibleItems.findIndex(i => i.classList.contains('selected'));
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const nextIndex = currentIndex < visibleItems.length - 1 ? currentIndex + 1 : 0;
+            visibleItems.forEach(i => i.classList.remove('selected'));
+            if (visibleItems[nextIndex]) {
+                visibleItems[nextIndex].classList.add('selected');
+                visibleItems[nextIndex].scrollIntoView({ block: 'nearest' });
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const prevIndex = currentIndex > 0 ? currentIndex - 1 : visibleItems.length - 1;
+            visibleItems.forEach(i => i.classList.remove('selected'));
+            if (visibleItems[prevIndex]) {
+                visibleItems[prevIndex].classList.add('selected');
+                visibleItems[prevIndex].scrollIntoView({ block: 'nearest' });
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const selected = visibleItems.find(i => i.classList.contains('selected'));
+            if (selected) {
+                selected.click();
+            }
+        } else if (e.key === 'Escape') {
+            dropdown.classList.remove('show');
+        }
+    });
+}
+
+// 初始化
+setupDropdown('stuSearch', 'stuDropdown', 'stuId');
+setupDropdown('courseSearch', 'courseDropdown', 'courseId');
+
+// 表单提交验证
+document.getElementById('scoreForm').addEventListener('submit', function(e) {
+    const stuId = document.getElementById('stuId');
+    const courseId = document.getElementById('courseId');
+
+    if (stuId && !stuId.value) {
+        e.preventDefault();
+        alert('请选择学生');
+        return;
+    }
+    if (courseId && !courseId.value) {
+        e.preventDefault();
+        alert('请选择课程');
+        return;
+    }
+});
+</script>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

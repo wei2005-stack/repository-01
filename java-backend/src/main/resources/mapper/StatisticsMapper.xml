@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tqh.studentmanage.mapper.StatisticsMapper">
+
+    <select id="callGenderStatsByDept" statementType="CALLABLE" resultType="map">
+        {call sp_GenderStatsByDept}
+    </select>
+
+    <select id="callGenderStatsByMajor" statementType="CALLABLE" resultType="map">
+        {call sp_GenderStatsByMajor}
+    </select>
+
+    <select id="callClassScoreStats" statementType="CALLABLE" resultType="map">
+        {call sp_ClassScoreStats(#{classId})}
+    </select>
+
+    <select id="countStudentInfoView" resultType="long">
+        SELECT COUNT(*) FROM v_StudentInfo
+    </select>
+
+    <select id="selectStudentInfoView" resultType="map">
+        SELECT * FROM v_StudentInfo ORDER BY 学号
+        OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+    </select>
+
+    <select id="selectStudentInfoByStuId" resultType="map">
+        SELECT * FROM v_StudentInfo WHERE 学号 = #{stuId}
+    </select>
+
+    <select id="countStudentScoreView" resultType="long">
+        SELECT COUNT(*) FROM v_StudentScore
+    </select>
+
+    <select id="selectStudentScoreView" resultType="map">
+        SELECT * FROM v_StudentScore ORDER BY 学号, 课程
+        OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+    </select>
+
+    <select id="selectStudentScoreByStuId" resultType="map">
+        SELECT * FROM v_StudentScore WHERE 学号 = #{stuId}
+    </select>
+
+    <select id="selectFailedStudents" resultType="map">
+        SELECT * FROM v_FailedStudents ORDER BY 学号
+    </select>
+
+    <select id="selectFailedStudentsByStuId" resultType="map">
+        SELECT * FROM v_FailedStudents WHERE 学号 = #{stuId}
+    </select>
+
+    <select id="selectClassStatistics" resultType="map">
+        SELECT * FROM v_ClassStatistics ORDER BY 班级编号
+    </select>
+
+    <select id="selectClassStatisticsByStuId" resultType="map">
+        SELECT v.* FROM v_ClassStatistics v
+        JOIN Student s ON v.班级编号 = s.class_id
+        WHERE s.stu_id = #{stuId}
+    </select>
+
+    <select id="selectScoreDistribution" resultType="map">
+        SELECT
+            SUM(CASE WHEN score >= 90 THEN 1 ELSE 0 END) AS 优秀,
+            SUM(CASE WHEN score >= 80 AND score &lt; 90 THEN 1 ELSE 0 END) AS 良好,
+            SUM(CASE WHEN score >= 70 AND score &lt; 80 THEN 1 ELSE 0 END) AS 中等,
+            SUM(CASE WHEN score >= 60 AND score &lt; 70 THEN 1 ELSE 0 END) AS 及格,
+            SUM(CASE WHEN score &lt; 60 THEN 1 ELSE 0 END) AS 不及格
+        FROM Score
+    </select>
+
+    <select id="selectScoreDistributionByStuId" resultType="map">
+        SELECT
+            SUM(CASE WHEN score >= 90 THEN 1 ELSE 0 END) AS 优秀,
+            SUM(CASE WHEN score >= 80 AND score &lt; 90 THEN 1 ELSE 0 END) AS 良好,
+            SUM(CASE WHEN score >= 70 AND score &lt; 80 THEN 1 ELSE 0 END) AS 中等,
+            SUM(CASE WHEN score >= 60 AND score &lt; 70 THEN 1 ELSE 0 END) AS 及格,
+            SUM(CASE WHEN score &lt; 60 THEN 1 ELSE 0 END) AS 不及格
+        FROM Score WHERE stu_id = #{stuId}
+    </select>
+
+    <select id="selectCourseAverages" resultType="map">
+        SELECT co.course_name, CAST(AVG(sc.score) AS DECIMAL(5,2)) AS avg_score
+        FROM Score sc
+        JOIN Course co ON sc.course_id = co.course_id
+        WHERE sc.exam_type = N'期末'
+        GROUP BY co.course_name
+        ORDER BY co.course_name
+    </select>
+
+    <select id="selectStudentCourseScores" resultType="map">
+        SELECT co.course_name, sc.score
+        FROM Score sc
+        JOIN Course co ON sc.course_id = co.course_id
+        WHERE sc.stu_id = #{stuId} AND sc.exam_type = N'期末'
+        ORDER BY co.course_name
+    </select>
+
+    <select id="countDepartments" resultType="long">SELECT COUNT(*) FROM Department</select>
+    <select id="countMajors" resultType="long">SELECT COUNT(*) FROM Major</select>
+    <select id="countClasses" resultType="long">SELECT COUNT(*) FROM Class</select>
+    <select id="countStudents" resultType="long">SELECT COUNT(*) FROM Student</select>
+    <select id="countCourses" resultType="long">SELECT COUNT(*) FROM Course</select>
+    <select id="countScores" resultType="long">SELECT COUNT(*) FROM Score</select>
+
+    <select id="selectDeptMajorCounts" resultType="map">
+        SELECT d.dept_name AS deptName, COUNT(m.major_id) AS cnt
+        FROM Department d
+        LEFT JOIN Major m ON d.dept_id = m.dept_id
+        GROUP BY d.dept_name
+        ORDER BY d.dept_name
+    </select>
+
+    <select id="selectDeptStudentCounts" resultType="map">
+        SELECT d.dept_name AS deptName, COUNT(s.stu_id) AS cnt
+        FROM Department d
+        LEFT JOIN Major m ON d.dept_id = m.dept_id
+        LEFT JOIN Class c ON m.major_id = c.major_id
+        LEFT JOIN Student s ON c.class_id = s.class_id
+        GROUP BY d.dept_name
+        ORDER BY d.dept_name
+    </select>
+
+    <select id="selectCourseTypeCounts" resultType="map">
+        SELECT course_type AS courseType, COUNT(*) AS cnt
+        FROM Course
+        GROUP BY course_type
+    </select>
+</mapper>

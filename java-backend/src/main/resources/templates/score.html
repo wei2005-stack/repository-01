@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head('成绩管理 - 学籍管理系统')}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h2><i class="bi bi-clipboard-data"></i> 成绩管理</h2>
+        <div th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+            <a href="/scores/import" class="btn btn-success me-1">
+                <i class="bi bi-upload"></i> 批量导入
+            </a>
+            <a href="/scores/add" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> 录入成绩
+            </a>
+        </div>
+    </div>
+
+    <!-- 筛选栏 -->
+    <div class="card mb-3">
+        <div class="card-body py-3">
+            <form method="get" action="/scores/" class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label mb-1"><small>学号</small></label>
+                    <input type="text" name="stuId" class="form-control form-control-sm"
+                           placeholder="输入学号..." th:value="${filterStu}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label mb-1"><small>姓名</small></label>
+                    <input type="text" name="stuName" class="form-control form-control-sm"
+                           placeholder="输入姓名..." th:value="${filterStuName}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label mb-1"><small>课程</small></label>
+                    <input type="text" name="courseName" class="form-control form-control-sm"
+                           placeholder="输入课程名..." th:value="${filterCourseName}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label mb-1"><small>学期</small></label>
+                    <input type="text" name="semester" class="form-control form-control-sm"
+                           placeholder="如: 2024-2025-1" th:value="${filterSemester}">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary btn-sm me-1">
+                        <i class="bi bi-search"></i> 查询
+                    </button>
+                    <a href="/scores/" class="btn btn-outline-secondary btn-sm me-1">
+                        <i class="bi bi-arrow-counterclockwise"></i> 重置
+                    </a>
+                    <button type="button" class="btn btn-success btn-sm" onclick="exportScores()">
+                        <i class="bi bi-download"></i> 导出
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-2 text-muted">
+                <small th:text="'共 ' + ${total} + ' 条记录'"></small>
+            </div>
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>学号</th>
+                        <th>姓名</th>
+                        <th>课程</th>
+                        <th>成绩</th>
+                        <th>学期</th>
+                        <th>考试类型</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="sc : ${scores}">
+                        <td th:text="${sc.stuId}"></td>
+                        <td th:text="${sc.studentName}"></td>
+                        <td th:text="${sc.courseName}"></td>
+                        <td>
+                            <span class="badge bg-success" th:if="${sc.score >= 90}" th:text="${sc.score}"></span>
+                            <span class="badge bg-primary" th:if="${sc.score >= 60 and sc.score < 90}" th:text="${sc.score}"></span>
+                            <span class="badge bg-danger" th:if="${sc.score < 60}" th:text="${sc.score}"></span>
+                        </td>
+                        <td th:text="${sc.semester}"></td>
+                        <td th:text="${sc.examType}"></td>
+                        <td>
+                            <a th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}"
+                               th:href="@{/scores/edit(stuId=${sc.stuId},courseId=${sc.courseId},semester=${sc.semester},examType=${sc.examType})}"
+                               class="btn btn-sm btn-outline-primary btn-action">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a th:if="${currentUser.role == 'admin'}"
+                               th:href="@{/scores/delete(stuId=${sc.stuId},courseId=${sc.courseId},semester=${sc.semester},examType=${sc.examType})}"
+                               class="btn btn-sm btn-outline-danger btn-action"
+                               onclick="return confirm('确定删除该成绩记录吗？')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- 分页 -->
+            <div th:replace="~{pagination :: pagination(${page}, ${totalPages}, ${total}, ${queryString})}"></div>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+
+<script th:inline="javascript">
+const recordTotal = /*[[${total}]]*/ 0;
+
+// 导出成绩
+function exportScores() {
+    const stuId = document.querySelector('input[name="stuId"]').value;
+    const stuName = document.querySelector('input[name="stuName"]').value;
+    const courseName = document.querySelector('input[name="courseName"]').value;
+    const semester = document.querySelector('input[name="semester"]').value;
+
+    // 构建提示信息
+    let msg = '当前导出条件：\n';
+    let conditions = [];
+    if (stuId) conditions.push('学号：' + stuId);
+    if (stuName) conditions.push('姓名：' + stuName);
+    if (courseName) conditions.push('课程：' + courseName);
+    if (semester) conditions.push('学期：' + semester);
+
+    if (conditions.length > 0) {
+        msg += conditions.join('\n') + '\n';
+    } else {
+        msg += '全部成绩记录\n';
+    }
+    msg += '共 ' + recordTotal + ' 条记录\n';
+    msg += '\n确认导出吗？';
+
+    if (!confirm(msg)) return;
+
+    // 构建导出URL
+    let url = '/scores/export?';
+    if (stuId) url += 'stuId=' + stuId + '&';
+    if (stuName) url += 'stuName=' + encodeURIComponent(stuName) + '&';
+    if (courseName) url += 'courseName=' + encodeURIComponent(courseName) + '&';
+    if (semester) url += 'semester=' + semester + '&';
+
+    window.location.href = url;
+}
+</script>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

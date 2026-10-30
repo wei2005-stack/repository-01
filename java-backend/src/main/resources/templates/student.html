@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head('学生管理 - 学籍管理系统')}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h2><i class="bi bi-people"></i> 学生管理</h2>
+        <div th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+            <a href="/students/import" class="btn btn-success me-1">
+                <i class="bi bi-upload"></i> 批量导入
+            </a>
+            <a href="/students/add" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> 新增学生
+            </a>
+        </div>
+    </div>
+
+    <!-- 筛选栏和搜索框 -->
+    <div class="card mb-3">
+        <div class="card-body py-3">
+            <form method="get" action="/students/" class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label mb-1"><small>院系</small></label>
+                    <select name="deptId" class="form-select form-select-sm" id="deptSelect" onchange="filterMajors()">
+                        <option value="">全部院系</option>
+                        <option th:each="dept : ${departments}" th:value="${dept.deptId}"
+                                th:selected="${filterDept == dept.deptId}" th:text="${dept.deptName}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label mb-1"><small>专业</small></label>
+                    <select name="majorId" class="form-select form-select-sm" id="majorSelect" onchange="filterClasses()">
+                        <option value="">全部专业</option>
+                        <option th:each="major : ${majors}" th:value="${major.majorId}"
+                                th:attr="data-dept=${major.deptId}"
+                                th:selected="${filterMajor == major.majorId}" th:text="${major.majorName}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label mb-1"><small>班级</small></label>
+                    <select name="classId" class="form-select form-select-sm" id="classSelect">
+                        <option value="">全部班级</option>
+                        <option th:each="cls : ${classes}" th:value="${cls.classId}"
+                                th:attr="data-major=${cls.majorId}"
+                                th:selected="${filterClass == cls.classId}" th:text="${cls.className}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label mb-1"><small>年级</small></label>
+                    <select name="enrollYear" class="form-select form-select-sm" id="yearSelect">
+                        <option value="">全部年级</option>
+                        <option th:each="y : ${years}" th:value="${y}"
+                                th:selected="${filterYear == y.toString()}" th:text="${y + '级'}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label mb-1"><small>搜索（学号/姓名）</small></label>
+                    <input type="text" name="keyword" class="form-control form-select-sm"
+                           placeholder="输入学号或姓名..." th:value="${filterKeyword}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary btn-sm me-1">
+                        <i class="bi bi-search"></i> 查询
+                    </button>
+                    <a href="/students/" class="btn btn-outline-secondary btn-sm me-1">
+                        <i class="bi bi-arrow-counterclockwise"></i> 重置
+                    </a>
+                    <button type="button" class="btn btn-success btn-sm" onclick="exportStudents()">
+                        <i class="bi bi-download"></i> 导出
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 学生列表 -->
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-2 text-muted">
+                <small th:text="${'共 ' + students.size() + ' 条记录'}"></small>
+            </div>
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>学号</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>院系</th>
+                        <th>专业</th>
+                        <th>班级</th>
+                        <th>联系电话</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="s : ${students}">
+                        <td th:text="${s.stuId}"></td>
+                        <td th:text="${s.name}"></td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${s.gender == '男' ? 'badge-gender-male' : 'badge-gender-female'}"
+                                  th:text="${s.gender}"></span>
+                        </td>
+                        <td th:text="${s.deptName}"></td>
+                        <td th:text="${s.majorName}"></td>
+                        <td th:text="${s.className}"></td>
+                        <td th:text="${s.phone != null and s.phone != '' ? s.phone : '-'}"></td>
+                        <td>
+                            <a th:href="${'/students/' + s.stuId + '/detail'}"
+                               class="btn btn-sm btn-outline-info btn-action">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a th:href="${'/students/' + s.stuId + '/edit'}"
+                               class="btn btn-sm btn-outline-primary btn-action"
+                               th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a th:href="${'/students/' + s.stuId + '/delete'}"
+                               class="btn btn-sm btn-outline-danger btn-action"
+                               onclick="return confirm('确定删除该学生吗？')"
+                               th:if="${currentUser.role == 'admin'}">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- 分页 -->
+            <div th:replace="~{pagination :: pagination(${page}, ${totalPages}, ${total}, ${queryString})}"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 联动筛选：院系 -> 专业
+function filterMajors() {
+    const deptId = document.getElementById('deptSelect').value;
+    const majorSelect = document.getElementById('majorSelect');
+    const currentMajor = majorSelect.value;
+    const options = majorSelect.querySelectorAll('option[data-dept]');
+
+    options.forEach(opt => {
+        opt.style.display = (!deptId || opt.dataset.dept === deptId) ? '' : 'none';
+    });
+
+    // 如果当前选中的专业在筛选后不可见，则重置
+    const selectedOption = majorSelect.querySelector('option[value="' + currentMajor + '"]');
+    if (selectedOption && selectedOption.style.display === 'none') {
+        majorSelect.value = '';
+    }
+
+    filterClasses();
+}
+
+// 联动筛选：专业 -> 班级
+function filterClasses() {
+    const majorId = document.getElementById('majorSelect').value;
+    const classSelect = document.getElementById('classSelect');
+    const currentClass = classSelect.value;
+    const options = classSelect.querySelectorAll('option[data-major]');
+
+    options.forEach(opt => {
+        opt.style.display = (!majorId || opt.dataset.major === majorId) ? '' : 'none';
+    });
+
+    // 如果当前选中的班级在筛选后不可见，则重置
+    const selectedOption = classSelect.querySelector('option[value="' + currentClass + '"]');
+    if (selectedOption && selectedOption.style.display === 'none') {
+        classSelect.value = '';
+    }
+}
+
+// 页面加载时执行一次联动
+filterMajors();
+
+// 导出学生信息
+function exportStudents() {
+    const deptSelect = document.getElementById('deptSelect');
+    const majorSelect = document.getElementById('majorSelect');
+    const classSelect = document.getElementById('classSelect');
+    const yearSelect = document.getElementById('yearSelect');
+
+    const deptId = deptSelect.value;
+    const majorId = majorSelect.value;
+    const classId = classSelect.value;
+    const enrollYear = yearSelect ? yearSelect.value : '';
+
+    // 获取显示文本
+    const deptText = deptId ? deptSelect.options[deptSelect.selectedIndex].text : '';
+    const majorText = majorId ? majorSelect.options[majorSelect.selectedIndex].text : '';
+    const classText = classId ? classSelect.options[classSelect.selectedIndex].text : '';
+    const yearText = enrollYear ? yearSelect.options[yearSelect.selectedIndex].text : '';
+
+    // 构建提示信息
+    let msg = '当前导出条件：\n';
+    if (classId) {
+        msg += '班级：' + classText + '\n';
+    } else if (majorId) {
+        msg += '专业：' + majorText + '\n';
+    } else if (deptId) {
+        msg += '院系：' + deptText + '\n';
+    } else if (enrollYear) {
+        msg += '年级：' + yearText + '\n';
+    } else {
+        msg += '全部学生\n';
+    }
+    msg += '\n确认导出吗？';
+
+    if (!confirm(msg)) return;
+
+    // 只使用最精确的筛选条件
+    let url = '/students/export?';
+    if (classId) {
+        url += 'classId=' + classId;
+    } else if (majorId) {
+        url += 'majorId=' + majorId;
+    } else if (deptId) {
+        url += 'deptId=' + deptId;
+    } else if (enrollYear) {
+        url += 'enrollYear=' + enrollYear;
+    }
+
+    window.location.href = url;
+}
+</script>
+<footer th:replace="~{base :: footer}"></footer>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head(${action == 'edit' ? '编辑课程 - 学籍管理系统' : '新增课程 - 学籍管理系统'})}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header">
+        <h2><i class="bi bi-journal-text"></i> [[${action == 'edit' ? '编辑' : '新增'}]]课程</h2>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">课程编号</label>
+                    <input type="text" name="courseId" class="form-control"
+                           th:value="${course != null ? course.courseId : ''}"
+                           th:readonly="${action == 'edit'}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">课程名称</label>
+                    <input type="text" name="courseName" class="form-control"
+                           th:value="${course != null ? course.courseName : ''}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">学分</label>
+                    <input type="number" step="0.5" name="credit" class="form-control"
+                           th:value="${course != null ? course.credit : ''}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">学时</label>
+                    <input type="number" name="hours" class="form-control"
+                           th:value="${course != null ? course.hours : ''}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">课程类型</label>
+                    <select name="courseType" class="form-select" required>
+                        <option value="必修" th:selected="${course != null and course.courseType == '必修'}">必修</option>
+                        <option value="选修" th:selected="${course != null and course.courseType == '选修'}">选修</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> 保存
+                    </button>
+                    <a href="/courses" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> 返回
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

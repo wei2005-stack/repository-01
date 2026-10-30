@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tqh.studentmanage.mapper.ScoreMapper">
+
+    <sql id="scoreJoins">
+        FROM Score sc
+        JOIN Student s ON sc.stu_id = s.stu_id
+        JOIN Course co ON sc.course_id = co.course_id
+    </sql>
+
+    <sql id="scoreFilters">
+        <where>
+            <if test="stuId != null and stuId != ''">
+                AND sc.stu_id LIKE #{stuId}
+            </if>
+            <if test="stuName != null and stuName != ''">
+                AND s.name LIKE #{stuName}
+            </if>
+            <if test="courseName != null and courseName != ''">
+                AND co.course_name LIKE #{courseName}
+            </if>
+            <if test="semester != null and semester != ''">
+                AND sc.semester LIKE #{semester}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectScorePage" resultType="com.tqh.studentmanage.entity.Score">
+        SELECT sc.*, s.name AS student_name, co.course_name, co.credit
+        <include refid="scoreJoins"/>
+        <include refid="scoreFilters"/>
+        ORDER BY sc.semester DESC, sc.stu_id
+        OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+    </select>
+
+    <select id="countScores" resultType="long">
+        SELECT COUNT(*)
+        <include refid="scoreJoins"/>
+        <include refid="scoreFilters"/>
+    </select>
+
+    <select id="selectScoreOne" resultType="com.tqh.studentmanage.entity.Score">
+        SELECT sc.*, s.name AS student_name, co.course_name, co.credit
+        <include refid="scoreJoins"/>
+        WHERE sc.stu_id = #{stuId}
+          AND sc.course_id = #{courseId}
+          AND sc.semester = #{semester}
+          AND sc.exam_type = #{examType}
+    </select>
+
+    <select id="selectByStudent" resultType="com.tqh.studentmanage.entity.Score">
+        SELECT sc.*, co.course_name, co.credit
+        FROM Score sc
+        JOIN Course co ON sc.course_id = co.course_id
+        WHERE sc.stu_id = #{stuId}
+        ORDER BY sc.semester, co.course_name
+    </select>
+
+    <select id="selectForExport" resultType="com.tqh.studentmanage.entity.Score">
+        SELECT sc.*, s.name AS student_name, co.course_name, co.credit,
+               c.class_name, m.major_name, d.dept_name
+        FROM Score sc
+        JOIN Student s ON sc.stu_id = s.stu_id
+        JOIN Course co ON sc.course_id = co.course_id
+        JOIN Class c ON s.class_id = c.class_id
+        JOIN Major m ON c.major_id = m.major_id
+        JOIN Department d ON m.dept_id = d.dept_id
+        <where>
+            <if test="stuId != null and stuId != ''">
+                AND sc.stu_id LIKE #{stuId}
+            </if>
+            <if test="stuName != null and stuName != ''">
+                AND s.name LIKE #{stuName}
+            </if>
+            <if test="courseName != null and courseName != ''">
+                AND co.course_name LIKE #{courseName}
+            </if>
+            <if test="semester != null and semester != ''">
+                AND sc.semester LIKE #{semester}
+            </if>
+            <if test="deptId != null and deptId != ''">
+                AND d.dept_id = #{deptId}
+            </if>
+            <if test="majorId != null and majorId != ''">
+                AND m.major_id = #{majorId}
+            </if>
+            <if test="classId != null and classId != ''">
+                AND c.class_id = #{classId}
+            </if>
+        </where>
+        ORDER BY sc.semester DESC, sc.stu_id
+    </select>
+
+    <update id="updateScore">
+        UPDATE Score SET score = #{score}
+        WHERE stu_id = #{stuId} AND course_id = #{courseId}
+          AND semester = #{semester} AND exam_type = #{examType}
+    </update>
+
+    <delete id="deleteScore">
+        DELETE FROM Score
+        WHERE stu_id = #{stuId} AND course_id = #{courseId}
+          AND semester = #{semester} AND exam_type = #{examType}
+    </delete>
+</mapper>

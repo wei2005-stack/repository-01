@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tqh.studentmanage.mapper.RewardMapper">
+
+    <sql id="rewardFilters">
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (r.stu_id LIKE #{keyword} OR s.name LIKE #{keyword}
+                     OR r.rp_type LIKE #{keyword} OR r.description LIKE #{keyword}
+                     OR r.level LIKE #{keyword})
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectRewardPage" resultType="com.tqh.studentmanage.entity.RewardPunishment">
+        SELECT r.*, s.name AS student_name
+        FROM RewardPunishment r
+        JOIN Student s ON r.stu_id = s.stu_id
+        <include refid="rewardFilters"/>
+        ORDER BY r.rp_date DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+    </select>
+
+    <select id="countRewards" resultType="long">
+        SELECT COUNT(*)
+        FROM RewardPunishment r
+        JOIN Student s ON r.stu_id = s.stu_id
+        <include refid="rewardFilters"/>
+    </select>
+
+    <select id="selectRewardDetail" resultType="com.tqh.studentmanage.entity.RewardPunishment">
+        SELECT r.*, s.name AS student_name
+        FROM RewardPunishment r
+        JOIN Student s ON r.stu_id = s.stu_id
+        WHERE r.rp_id = #{rpId}
+    </select>
+</mapper>

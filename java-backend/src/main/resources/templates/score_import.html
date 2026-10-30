@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head('导入成绩 - 学籍管理系统')}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header">
+        <h2><i class="bi bi-upload"></i> 批量导入成绩</h2>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-spreadsheet"></i> 上传文件</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="/scores/import" enctype="multipart/form-data" id="importForm">
+                        <div class="mb-3">
+                            <label class="form-label">选择CSV文件</label>
+                            <input type="file" name="file" class="form-control" accept=".csv" required>
+                            <small class="text-muted">仅支持 .csv 格式文件</small>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="skip_errors" id="skipErrors" value="1" checked>
+                                <label class="form-check-label" for="skipErrors">
+                                    跳过错误记录继续导入
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> 开始导入
+                        </button>
+                        <a href="/scores/" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> 返回
+                        </a>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mb-4" th:if="${result != null}">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-check-circle"></i> 导入结果</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h3 th:text="${result.success}"></h3>
+                                    <small>成功导入</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h3 th:text="${result.failed}"></h3>
+                                    <small>导入失败</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h3 th:text="${result.total}"></h3>
+                                    <small>总记录数</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning" th:if="${!#lists.isEmpty(result.errors)}">
+                        <h6><i class="bi bi-exclamation-triangle"></i> 错误详情：</h6>
+                        <ul class="mb-0">
+                            <li th:each="err : ${result.errors}" th:text="${err}"></li>
+                        </ul>
+                    </div>
+
+                    <a href="/scores/" class="btn btn-primary" th:if="${result.success > 0}">
+                        <i class="bi bi-list"></i> 查看成绩列表
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> 导入说明</h5>
+                </div>
+                <div class="card-body">
+                    <h6>文件格式要求：</h6>
+                    <ol>
+                        <li>文件必须为 <strong>CSV</strong> 格式</li>
+                        <li>第一行为表头，必须包含以下列：</li>
+                        <ul>
+                            <li><code>学号</code> - 必填</li>
+                            <li><code>课程编号</code> - 必填</li>
+                            <li><code>成绩</code> - 必填，0-100</li>
+                            <li><code>学期</code> - 必填，如 2024-2025-1</li>
+                            <li><code>考试类型</code> - 选填，默认"期末"</li>
+                        </ul>
+                        <li>学号和课程编号必须在系统中存在</li>
+                        <li>相同学号+课程+学期+考试类型不能重复</li>
+                    </ol>
+
+                    <h6 class="mt-3">下载模板：</h6>
+                    <a href="/static/template/成绩导入模板.csv" class="btn btn-outline-success btn-sm" download>
+                        <i class="bi bi-download"></i> 下载CSV模板
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-file-text"></i> 模板示例</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>学号</th>
+                                <th>课程编号</th>
+                                <th>成绩</th>
+                                <th>学期</th>
+                                <th>考试类型</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2023010101</td>
+                                <td>CS101</td>
+                                <td>85.5</td>
+                                <td>2023-2024-1</td>
+                                <td>期末</td>
+                            </tr>
+                            <tr>
+                                <td>2023010101</td>
+                                <td>CS102</td>
+                                <td>92.0</td>
+                                <td>2023-2024-1</td>
+                                <td>期末</td>
+                            </tr>
+                            <tr>
+                                <td>2023010102</td>
+                                <td>CS101</td>
+                                <td>91.0</td>
+                                <td>2023-2024-1</td>
+                                <td>期末</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

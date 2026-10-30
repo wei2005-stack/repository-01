@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head(${action == 'edit' ? '编辑院系 - 学籍管理系统' : '新增院系 - 学籍管理系统'})}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header">
+        <h2><i class="bi bi-building"></i> [[${action == 'edit' ? '编辑' : '新增'}]]院系</h2>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" class="row g-3"
+                  th:action="${action == 'add' ? '/departments/add' : '/departments/' + dept.deptId + '/edit'}">
+                <div class="col-md-6">
+                    <label class="form-label">院系编号</label>
+                    <input type="text" name="deptId" class="form-control"
+                           th:value="${dept != null ? dept.deptId : ''}"
+                           th:readonly="${action == 'edit'}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">院系名称</label>
+                    <input type="text" name="deptName" class="form-control"
+                           th:value="${dept != null ? dept.deptName : ''}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">联系电话</label>
+                    <input type="text" name="phone" class="form-control"
+                           th:value="${dept != null ? dept.phone : ''}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">办公地址</label>
+                    <input type="text" name="address" class="form-control"
+                           th:value="${dept != null ? dept.address : ''}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> 保存
+                    </button>
+                    <a href="/departments" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> 返回
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

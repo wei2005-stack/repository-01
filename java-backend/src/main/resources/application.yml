@@ -1,0 +1,45 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=student_manage;encrypt=true;trustServerCertificate=true
+    username: sa
+    password: "123456"
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  thymeleaf:
+    cache: false
+    encoding: UTF-8
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: false
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    jdbc-type-for-null: NULL
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+
+app:
+  jwt:
+    # 生产环境请通过环境变量 APP_JWT_SECRET 覆盖
+    secret: ${APP_JWT_SECRET:student-manage-jwt-secret-key-2026-please-change-me-1234567890}
+    expiration: 28800000
+  backup-dir: ${APP_BACKUP_DIR:E:/数据库课程设计-修改版/backup}
+  sqlcmd:
+    server: ${APP_SQLCMD_SERVER:localhost}
+    username: ${APP_SQLCMD_USERNAME:sa}
+    password: ${APP_SQLCMD_PASSWORD:123456}
+
+logging:
+  level:
+    com.tqh.studentmanage: info

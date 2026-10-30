@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head('院系管理 - 学籍管理系统')}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h2><i class="bi bi-building"></i> 院系管理</h2>
+        <a href="/departments/add" class="btn btn-primary"
+           th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+            <i class="bi bi-plus-circle"></i> 新增院系
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>院系编号</th>
+                        <th>院系名称</th>
+                        <th>联系电话</th>
+                        <th>办公地址</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="dept : ${departments}">
+                        <td th:text="${dept.deptId}"></td>
+                        <td th:text="${dept.deptName}"></td>
+                        <td th:text="${dept.phone != null and dept.phone != '' ? dept.phone : '-'}"></td>
+                        <td th:text="${dept.address != null and dept.address != '' ? dept.address : '-'}"></td>
+                        <td>
+                            <a th:href="${'/departments/' + dept.deptId + '/edit'}"
+                               class="btn btn-sm btn-outline-primary btn-action"
+                               th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+                                <i class="bi bi-pencil"></i> 编辑
+                            </a>
+                            <a th:href="${'/departments/' + dept.deptId + '/delete'}"
+                               class="btn btn-sm btn-outline-danger btn-action"
+                               onclick="return confirm('确定删除该院系吗？')"
+                               th:if="${currentUser.role == 'admin'}">
+                                <i class="bi bi-trash"></i> 删除
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

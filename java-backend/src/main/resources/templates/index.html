@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head('首页 - 学籍管理系统')}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header">
+        <h2><i class="bi bi-speedometer2"></i> 系统仪表盘</h2>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-2 mb-3">
+            <div class="card stat-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-number" th:text="${deptCount}"></div>
+                            <div>院系数量</div>
+                        </div>
+                        <i class="bi bi-building stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card stat-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-number" th:text="${majorCount}"></div>
+                            <div>专业数量</div>
+                        </div>
+                        <i class="bi bi-book stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card stat-card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-number" th:text="${classCount}"></div>
+                            <div>班级数量</div>
+                        </div>
+                        <i class="bi bi-door-open stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card stat-card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-number" th:text="${studentCount}"></div>
+                            <div>学生人数</div>
+                        </div>
+                        <i class="bi bi-people stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card stat-card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-number" th:text="${courseCount}"></div>
+                            <div>课程数量</div>
+                        </div>
+                        <i class="bi bi-journal-text stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card stat-card bg-secondary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-number" th:text="${scoreCount}"></div>
+                            <div>成绩记录</div>
+                        </div>
+                        <i class="bi bi-clipboard-data stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图表区域 -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> 各院系专业数量</h5>
+                </div>
+                <div class="card-body" style="position: relative; height: 300px;">
+                    <canvas id="deptMajorChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-pie-chart"></i> 课程类型分布</h5>
+                </div>
+                <div class="card-body" style="position: relative; height: 300px;">
+                    <canvas id="courseTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-link-45deg"></i> 快捷入口</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <th:block th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+                            <a href="/students/add" class="btn btn-outline-primary btn-lg" style="padding: 0.9rem 1rem;">
+                                <i class="bi bi-person-plus"></i> 添加学生
+                            </a>
+                            <a href="/scores/add" class="btn btn-outline-success btn-lg" style="padding: 0.9rem 1rem;">
+                                <i class="bi bi-plus-circle"></i> 录入成绩
+                            </a>
+                            <a href="/rewards/add" class="btn btn-outline-warning btn-lg" style="padding: 0.9rem 1rem;">
+                                <i class="bi bi-award"></i> 添加奖惩
+                            </a>
+                        </th:block>
+                        <a href="/statistics/gender-dept" class="btn btn-outline-info btn-lg" style="padding: 0.9rem 1rem;">
+                            <i class="bi bi-bar-chart"></i> 统计查询
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第二行图表 -->
+    <div class="row mb-4">
+        <div class="col-md-7 mb-3">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart-line"></i> 各院系学生人数</h5>
+                </div>
+                <div class="card-body" style="position: relative; height: 300px;">
+                    <canvas id="deptStudentChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 mb-3">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> 最近添加的学生</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>学号</th>
+                                <th>姓名</th>
+                                <th>性别</th>
+                                <th>班级</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="s : ${recentStudents}">
+                                <td th:text="${s.stuId}"></td>
+                                <td th:text="${s.name}"></td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${s.gender == '男' ? 'badge-gender-male' : 'badge-gender-female'}"
+                                          th:text="${s.gender}"></span>
+                                </td>
+                                <td th:text="${s.className}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        按学号降序排列，展示最新 5 名学生
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+const deptMajorLabels = /*[[${deptMajorLabels}]]*/ [];
+const deptMajorCounts = /*[[${deptMajorCounts}]]*/ [];
+const deptStudentLabels = /*[[${deptStudentLabels}]]*/ [];
+const deptStudentCounts = /*[[${deptStudentCounts}]]*/ [];
+const courseTypeLabels = /*[[${courseTypeLabels}]]*/ [];
+const courseTypeCounts = /*[[${courseTypeCounts}]]*/ [];
+
+// 各院系专业数量柱状图
+new Chart(document.getElementById('deptMajorChart'), {
+    type: 'bar',
+    data: {
+        labels: deptMajorLabels,
+        datasets: [{
+            label: '专业数量',
+            data: deptMajorCounts,
+            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } },
+            x: { ticks: { font: { size: 11 } } }
+        }
+    }
+});
+
+// 各院系学生人数柱状图
+new Chart(document.getElementById('deptStudentChart'), {
+    type: 'bar',
+    data: {
+        labels: deptStudentLabels,
+        datasets: [{
+            label: '学生人数',
+            data: deptStudentCounts,
+            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 5 } },
+            x: { ticks: { font: { size: 11 } } }
+        }
+    }
+});
+
+// 课程类型分布饼图
+new Chart(document.getElementById('courseTypeChart'), {
+    type: 'doughnut',
+    data: {
+        labels: courseTypeLabels,
+        datasets: [{
+            data: courseTypeCounts,
+            backgroundColor: ['#4e73df', '#1cc88a'],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 15 } }
+        }
+    }
+});
+</script>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

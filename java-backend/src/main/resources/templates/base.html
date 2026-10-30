@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">学籍管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <i class="bi bi-mortarboard-fill"></i> 学籍管理系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/"><i class="bi bi-house"></i> 首页</a>
+                </li>
+
+                <th:block th:if="${currentUser != null}">
+                    <!-- 基础管理：仅 admin 和 academic 可见 -->
+                    <li class="nav-item dropdown"
+                        th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-gear"></i> 基础管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/departments">院系管理</a></li>
+                            <li><a class="dropdown-item" href="/majors">专业管理</a></li>
+                            <li><a class="dropdown-item" href="/classes">班级管理</a></li>
+                            <li><a class="dropdown-item" href="/courses">课程管理</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- 学生管理：admin 和 academic 可见 -->
+                    <li class="nav-item dropdown"
+                        th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-people"></i> 学生管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/students">学生信息</a></li>
+                            <li><a class="dropdown-item" href="/scores">成绩管理</a></li>
+                            <li><a class="dropdown-item" href="/rewards">奖惩管理</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- 统计查询 -->
+                    <li class="nav-item dropdown" th:if="${currentUser.role == 'readonly'}">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-bar-chart"></i> 信息查询
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/statistics/my-info"><i class="bi bi-person"></i> 我的信息</a></li>
+                            <li><a class="dropdown-item" href="/statistics/score-view"><i class="bi bi-clipboard-data"></i> 我的成绩</a></li>
+                            <li><a class="dropdown-item" href="/statistics/failed"><i class="bi bi-exclamation-triangle"></i> 我的不及格记录</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown" th:if="${currentUser.role != 'readonly'}">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-bar-chart"></i> 统计查询
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/statistics/gender-dept">院系统计</a></li>
+                            <li><a class="dropdown-item" href="/statistics/gender-major">专业统计</a></li>
+                            <li><a class="dropdown-item" href="/statistics/student-info">学生信息视图</a></li>
+                            <li><a class="dropdown-item" href="/statistics/score-view">成绩视图</a></li>
+                            <li><a class="dropdown-item" href="/statistics/failed">不及格学生</a></li>
+                            <li><a class="dropdown-item" href="/statistics/class-stats">班级统计</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- 用户管理：仅 admin 可见 -->
+                    <th:block th:if="${currentUser.role == 'admin'}">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/users"><i class="bi bi-person-gear"></i> 用户管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/backup/"><i class="bi bi-cloud-arrow-up-down"></i> 备份恢复</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logs/"><i class="bi bi-clock-history"></i> 操作日志</a>
+                        </li>
+                    </th:block>
+                </th:block>
+            </ul>
+
+            <!-- 右侧用户信息 -->
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown" th:if="${currentUser != null}">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i>
+                        <span th:text="${currentUser.displayName}"></span>
+                        <span class="badge bg-danger" th:if="${currentUser.role == 'admin'}">管理员</span>
+                        <span class="badge bg-light text-primary" th:if="${currentUser.role == 'academic'}">教务老师</span>
+                        <span class="badge bg-light text-secondary" th:if="${currentUser.role == 'readonly'}">学生</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/logout">
+                            <i class="bi bi-box-arrow-right"></i> 退出登录
+                        </a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" th:if="${currentUser == null}">
+                    <a class="nav-link" href="/login"><i class="bi bi-box-arrow-in-right"></i> 登录</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<footer th:fragment="footer" class="footer mt-5 py-3 bg-light">
+    <div class="container text-center text-muted">
+        <small>高校学籍管理系统 &copy; 2026 | 数据库课程设计</small>
+    </div>
+</footer>
+
+<th:block th:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</th:block>
+</body>
+</html>

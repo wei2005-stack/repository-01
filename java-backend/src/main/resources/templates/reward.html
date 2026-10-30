@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head('奖惩管理 - 学籍管理系统')}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h2><i class="bi bi-award"></i> 奖惩管理</h2>
+        <a href="/rewards/add" class="btn btn-primary"
+           th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+            <i class="bi bi-plus-circle"></i> 新增奖惩
+        </a>
+    </div>
+
+    <!-- 搜索框 -->
+    <div class="card mb-3">
+        <div class="card-body py-3">
+            <form method="get" action="/rewards/" class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label mb-1"><small>搜索（学号/姓名/类型/描述/等级）</small></label>
+                    <input type="text" name="keyword" class="form-control form-control-sm"
+                           placeholder="输入学号、姓名、类型、描述或等级进行搜索..." th:value="${filterKeyword}">
+                </div>
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-primary btn-sm me-1">
+                        <i class="bi bi-search"></i> 查询
+                    </button>
+                    <a href="/rewards/" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-counterclockwise"></i> 重置
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-2 text-muted">
+                <small th:text="${'共 ' + rewards.size() + ' 条记录'}"></small>
+            </div>
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>编号</th>
+                        <th>学号</th>
+                        <th>姓名</th>
+                        <th>类型</th>
+                        <th>等级</th>
+                        <th>描述</th>
+                        <th>日期</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="rp : ${rewards}">
+                        <td th:text="${rp.rpId}"></td>
+                        <td th:text="${rp.stuId}"></td>
+                        <td th:text="${rp.studentName}"></td>
+                        <td>
+                            <span class="badge bg-success" th:if="${rp.rpType == '奖励'}" th:text="${rp.rpType}"></span>
+                            <span class="badge bg-danger" th:unless="${rp.rpType == '奖励'}" th:text="${rp.rpType}"></span>
+                        </td>
+                        <td th:text="${rp.level != null and rp.level != '' ? rp.level : '-'}"></td>
+                        <td>
+                            <span th:if="${rp.description != null and rp.description != ''}"
+                                  th:text="${rp.description.length() > 30 ? rp.description.substring(0, 30) + '...' : rp.description}"></span>
+                            <span th:unless="${rp.description != null and rp.description != ''}">-</span>
+                        </td>
+                        <td th:text="${rp.rpDate}"></td>
+                        <td>
+                            <a th:href="${'/rewards/' + rp.rpId + '/edit'}"
+                               class="btn btn-sm btn-outline-primary btn-action"
+                               th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a th:href="${'/rewards/' + rp.rpId + '/delete'}"
+                               class="btn btn-sm btn-outline-danger btn-action"
+                               onclick="return confirm('确定删除该记录吗？')"
+                               th:if="${currentUser.role == 'admin'}">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- 分页 -->
+            <div th:replace="~{pagination :: pagination(${page}, ${totalPages}, ${total}, ${queryString})}"></div>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

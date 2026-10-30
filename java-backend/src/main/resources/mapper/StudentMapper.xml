@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tqh.studentmanage.mapper.StudentMapper">
+
+    <sql id="studentJoins">
+        FROM Student s
+        JOIN Class c ON s.class_id = c.class_id
+        JOIN Major m ON c.major_id = m.major_id
+        JOIN Department d ON m.dept_id = d.dept_id
+    </sql>
+
+    <sql id="studentFilters">
+        <where>
+            <if test="deptId != null and deptId != ''">
+                AND d.dept_id = #{deptId}
+            </if>
+            <if test="majorId != null and majorId != ''">
+                AND m.major_id = #{majorId}
+            </if>
+            <if test="classId != null and classId != ''">
+                AND c.class_id = #{classId}
+            </if>
+            <if test="enrollYear != null">
+                AND c.enroll_year = #{enrollYear}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (s.stu_id LIKE #{keyword} OR s.name LIKE #{keyword})
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectStudentPage" resultType="com.tqh.studentmanage.entity.Student">
+        SELECT s.*, c.class_name, c.enroll_year, m.major_id, m.major_name, d.dept_id, d.dept_name
+        <include refid="studentJoins"/>
+        <include refid="studentFilters"/>
+        ORDER BY s.stu_id
+        OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+    </select>
+
+    <select id="countStudents" resultType="long">
+        SELECT COUNT(*)
+        <include refid="studentJoins"/>
+        <include refid="studentFilters"/>
+    </select>
+
+    <select id="selectStudentDetail" resultType="com.tqh.studentmanage.entity.Student">
+        SELECT s.*, c.class_name, c.enroll_year, m.major_id, m.major_name, d.dept_id, d.dept_name
+        <include refid="studentJoins"/>
+        WHERE s.stu_id = #{stuId}
+    </select>
+
+    <select id="selectForExport" resultType="com.tqh.studentmanage.entity.Student">
+        SELECT s.*, c.class_name, c.enroll_year, m.major_id, m.major_name, d.dept_id, d.dept_name
+        <include refid="studentJoins"/>
+        <include refid="studentFilters"/>
+        ORDER BY s.stu_id
+    </select>
+
+    <select id="selectRecentStudents" resultType="com.tqh.studentmanage.entity.Student">
+        SELECT TOP 5 s.stu_id, s.name, s.gender, c.class_name
+        FROM Student s
+        JOIN Class c ON s.class_id = c.class_id
+        ORDER BY s.stu_id DESC
+    </select>
+
+    <select id="selectEnrollYears" resultType="int">
+        SELECT DISTINCT enroll_year FROM Class ORDER BY enroll_year DESC
+    </select>
+</mapper>

@@ -1,0 +1,64 @@
+/* 学籍管理系统样式 */
+body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background-color: #f5f7fa;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.stat-card {
+    border: none;
+    border-radius: 12px;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.stat-card .card-body {
+    padding: 1.5rem;
+}
+
+.stat-card .stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+.stat-card .stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.table th {
+    background-color: #e9ecef;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.btn-action {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.page-header {
+    border-bottom: 2px solid #0d6efd;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.badge-gender-male {
+    background-color: #4e73df;
+}
+
+.badge-gender-female {
+    background-color: #e74a3b;
+}
+
+.footer {
+    margin-top: auto;
+}

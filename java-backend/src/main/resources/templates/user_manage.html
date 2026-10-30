@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head('用户管理 - 学籍管理系统')}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h2><i class="bi bi-people-fill"></i> 用户管理</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+        <i class="bi bi-person-plus"></i> 新增用户
+    </button>
+</div>
+
+<!-- 用户列表 -->
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>真实姓名</th>
+                    <th>角色</th>
+                    <th>绑定学号</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user : ${users}">
+                    <td th:text="${user.id}"></td>
+                    <td><strong th:text="${user.username}"></strong></td>
+                    <td th:text="${user.realName != null and user.realName != '' ? user.realName : '-'}"></td>
+                    <td>
+                        <span class="badge bg-danger" th:if="${user.role == 'admin'}">管理员</span>
+                        <span class="badge bg-primary" th:if="${user.role == 'academic'}">教务老师</span>
+                        <span class="badge bg-secondary" th:if="${user.role != 'admin' and user.role != 'academic'}">学生</span>
+                    </td>
+                    <td th:text="${user.studentId != null and user.studentId != '' ? user.studentId : '-'}"></td>
+                    <td>
+                        <span class="badge bg-success" th:if="${user.isActive}">启用</span>
+                        <span class="badge bg-warning" th:unless="${user.isActive}">禁用</span>
+                    </td>
+                    <td>
+                        <div th:if="${user.username != 'admin'}">
+                            <form method="post" th:action="@{/users/{id}/toggle(id=${user.id})}" style="display:inline">
+                                <button type="submit" class="btn btn-sm"
+                                        th:classappend="${user.isActive ? 'btn-outline-warning' : 'btn-outline-success'}"
+                                        th:text="${user.isActive ? '禁用' : '启用'}"></button>
+                            </form>
+                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal"
+                                    th:attr="data-bs-target=${'#resetPwdModal' + user.id}">
+                                重置密码
+                            </button>
+                            <form method="post" th:action="@{/users/{id}/delete(id=${user.id})}" style="display:inline"
+                                  onsubmit="return confirm('确定删除该用户吗？')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">删除</button>
+                            </form>
+                        </div>
+                        <span class="text-muted" th:if="${user.username == 'admin'}">超级管理员</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 重置密码弹窗 -->
+<div class="modal fade" th:each="user : ${users}" th:if="${user.username != 'admin'}"
+     th:id="|resetPwdModal${user.id}|" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" th:action="@{/users/{id}/reset-password(id=${user.id})}">
+                <div class="modal-header">
+                    <h5 class="modal-title" th:text="|重置密码 - ${user.username}|"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">新密码</label>
+                    <input type="text" name="newPassword" class="form-control" value="123456">
+                    <small class="text-muted">默认重置为 123456</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">确认重置</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 新增用户弹窗 -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" th:action="@{/users/add}">
+                <div class="modal-header">
+                    <h5 class="modal-title">新增用户</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">用户名</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">密码</label>
+                        <input type="text" name="password" class="form-control" value="123456" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">真实姓名</label>
+                        <input type="text" name="realName" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">角色</label>
+                        <select name="role" class="form-select" id="roleSelect" onchange="toggleStudentId()">
+                            <option value="readonly">学生（只读）</option>
+                            <option value="academic">教务老师（读写）</option>
+                            <option value="admin">管理员（全部权限）</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="studentIdField">
+                        <label class="form-label">绑定学号</label>
+                        <select name="studentId" class="form-select">
+                            <option value="">不绑定</option>
+                            <option th:each="s : ${students}" th:value="${s.stuId}"
+                                    th:text="|${s.stuId} - ${s.name}|"></option>
+                        </select>
+                        <small class="text-muted">学生角色必须绑定学号，才能查看自己的信息</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">创建</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleStudentId() {
+    var role = document.getElementById('roleSelect').value;
+    var field = document.getElementById('studentIdField');
+    field.style.display = (role === 'readonly') ? 'block' : 'none';
+}
+// 页面加载时执行一次
+toggleStudentId();
+</script>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

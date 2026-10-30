@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head('专业管理 - 学籍管理系统')}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h2><i class="bi bi-book"></i> 专业管理</h2>
+        <a href="/majors/add" class="btn btn-primary"
+           th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+            <i class="bi bi-plus-circle"></i> 新增专业
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>专业编号</th>
+                        <th>专业名称</th>
+                        <th>所属院系</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="major : ${majors}">
+                        <td th:text="${major.majorId}"></td>
+                        <td th:text="${major.majorName}"></td>
+                        <td th:text="${major.deptName}"></td>
+                        <td>
+                            <a th:href="${'/majors/' + major.majorId + '/edit'}"
+                               class="btn btn-sm btn-outline-primary btn-action"
+                               th:if="${currentUser.role == 'admin' or currentUser.role == 'academic'}">
+                                <i class="bi bi-pencil"></i> 编辑
+                            </a>
+                            <a th:href="${'/majors/' + major.majorId + '/delete'}"
+                               class="btn btn-sm btn-outline-danger btn-action"
+                               onclick="return confirm('确定删除该专业吗？')"
+                               th:if="${currentUser.role == 'admin'}">
+                                <i class="bi bi-trash"></i> 删除
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

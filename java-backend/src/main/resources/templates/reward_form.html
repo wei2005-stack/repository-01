@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head(${action == 'edit' ? '编辑奖惩 - 学籍管理系统' : '新增奖惩 - 学籍管理系统'})}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+    <div class="page-header">
+        <h2><i class="bi bi-award"></i> [[${action == 'edit' ? '编辑' : '新增'}]]奖惩记录</h2>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">学生</label>
+                    <input type="text" class="form-control"
+                           th:value="${(rp.stuId ?: '') + ' - ' + (rp.studentName ?: '')}" disabled
+                           th:if="${action == 'edit'}">
+                    <input type="hidden" name="stuId" th:value="${rp.stuId}"
+                           th:if="${action == 'edit'}">
+                    <input type="hidden" name="stuId" id="stuId" value=""
+                           th:unless="${action == 'edit'}">
+                    <div class="dropdown-wrapper" th:unless="${action == 'edit'}">
+                        <input type="text" id="stuSearch" class="form-control" placeholder="输入学号或姓名搜索学生..."
+                               autocomplete="off" required>
+                        <div id="stuDropdown" class="dropdown-list">
+                            <div th:each="s : ${students}" class="dropdown-item-custom"
+                                 th:attr="data-id=${s.stuId},data-text=${(s.stuId ?: '') + ' - ' + (s.name ?: '')}">
+                                <strong th:text="${s.stuId}"></strong> - [[${s.name}]]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">类型</label>
+                    <select name="rpType" class="form-select" required>
+                        <option value="奖励" th:selected="${rp != null and rp.rpType == '奖励'}">奖励</option>
+                        <option value="惩罚" th:selected="${rp != null and rp.rpType == '惩罚'}">惩罚</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">等级</label>
+                    <input type="text" name="level" class="form-control"
+                           placeholder="如：一等奖学金、学业警告"
+                           th:value="${rp != null ? rp.level : ''}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">日期</label>
+                    <input type="date" name="rpDate" class="form-control"
+                           th:value="${rp != null ? rp.rpDate : ''}" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">描述</label>
+                    <textarea name="description" class="form-control" rows="3"
+                              th:text="${rp != null ? rp.description : ''}"></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> 保存
+                    </button>
+                    <a href="/rewards/" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> 返回
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.dropdown-wrapper { position: relative; }
+.dropdown-list {
+    display: none; position: absolute; top: 100%; left: 0; right: 0;
+    max-height: 250px; overflow-y: auto; background: #fff;
+    border: 1px solid #ced4da; border-top: none;
+    border-radius: 0 0 4px 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;
+}
+.dropdown-list.show { display: block; }
+.dropdown-item-custom {
+    padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0;
+}
+.dropdown-item-custom:hover { background-color: #e9ecef; }
+.dropdown-item-custom.selected { background-color: #0d6efd; color: #fff; }
+</style>
+
+<script>
+function setupDropdown(searchId, dropdownId, hiddenId) {
+    const searchInput = document.getElementById(searchId);
+    const dropdown = document.getElementById(dropdownId);
+    const hiddenInput = document.getElementById(hiddenId);
+    const items = dropdown.querySelectorAll('.dropdown-item-custom');
+
+    searchInput.addEventListener('focus', function() { dropdown.classList.add('show'); filterItems(); });
+    searchInput.addEventListener('input', function() { filterItems(); hiddenInput.value = ''; });
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.remove('show');
+    });
+    items.forEach(item => {
+        item.addEventListener('click', function() {
+            searchInput.value = this.getAttribute('data-text');
+            hiddenInput.value = this.getAttribute('data-id');
+            dropdown.classList.remove('show');
+            items.forEach(i => i.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+    function filterItems() {
+        const keyword = searchInput.value.toLowerCase();
+        let hasVisible = false;
+        items.forEach(item => {
+            const text = item.getAttribute('data-text').toLowerCase();
+            if (!keyword || text.includes(keyword)) { item.style.display = ''; hasVisible = true; }
+            else item.style.display = 'none';
+        });
+        if (hasVisible) dropdown.classList.add('show');
+        else dropdown.classList.remove('show');
+    }
+    searchInput.addEventListener('keydown', function(e) {
+        const visibleItems = Array.from(items).filter(i => i.style.display !== 'none');
+        const currentIndex = visibleItems.findIndex(i => i.classList.contains('selected'));
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const next = currentIndex < visibleItems.length - 1 ? currentIndex + 1 : 0;
+            visibleItems.forEach(i => i.classList.remove('selected'));
+            if (visibleItems[next]) { visibleItems[next].classList.add('selected'); visibleItems[next].scrollIntoView({block:'nearest'}); }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const prev = currentIndex > 0 ? currentIndex - 1 : visibleItems.length - 1;
+            visibleItems.forEach(i => i.classList.remove('selected'));
+            if (visibleItems[prev]) { visibleItems[prev].classList.add('selected'); visibleItems[prev].scrollIntoView({block:'nearest'}); }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const selected = visibleItems.find(i => i.classList.contains('selected'));
+            if (selected) selected.click();
+        } else if (e.key === 'Escape') { dropdown.classList.remove('show'); }
+    });
+}
+setupDropdown('stuSearch', 'stuDropdown', 'stuId');
+</script>
+<footer th:replace="~{base :: footer}"></footer>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{base :: head('数据备份恢复 - 学籍管理系统')}"></head>
+<body>
+<nav th:replace="~{base :: navbar}"></nav>
+<div class="container-fluid mt-4">
+<div class="page-header">
+    <h2><i class="bi bi-cloud-arrow-up-down"></i> 数据备份与恢复</h2>
+</div>
+
+<!-- 提示消息 -->
+<div th:if="${message != null and message != ''}"
+     class="alert alert-dismissible fade show" role="alert"
+     th:classappend="${#strings.contains(message, '✅') ? 'alert-success' : 'alert-danger'}">
+    <span th:text="${message}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<div class="row">
+    <!-- 备份操作 -->
+    <div class="col-md-5">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-cloud-arrow-up"></i> 数据备份</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">定期备份数据库，防止数据丢失。</p>
+
+                <form method="post" th:action="@{/backup/full}" class="mb-3">
+                    <div class="d-flex align-items-center justify-content-between p-3 border rounded">
+                        <div>
+                            <h6 class="mb-1"><i class="bi bi-hdd"></i> 完整备份</h6>
+                            <small class="text-muted">备份整个数据库，文件较大但恢复简单</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-download"></i> 执行备份
+                        </button>
+                    </div>
+                </form>
+
+                <form method="post" th:action="@{/backup/diff}">
+                    <div class="d-flex align-items-center justify-content-between p-3 border rounded">
+                        <div>
+                            <h6 class="mb-1"><i class="bi bi-hdd-stack"></i> 差异备份</h6>
+                            <small class="text-muted">只备份自上次完整备份后的变化，文件较小</small>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-download"></i> 执行备份
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 恢复操作 -->
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-cloud-arrow-down"></i> 数据恢复</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger py-2 mb-3">
+                    <small><i class="bi bi-exclamation-triangle"></i> <strong>警告：</strong>恢复操作将覆盖当前数据库所有数据！</small>
+                </div>
+                <form method="post" th:action="@{/backup/restore}">
+                    <div class="mb-3">
+                        <label class="form-label">选择备份文件</label>
+                        <select name="filename" class="form-select" required>
+                            <option value="">请选择备份文件</option>
+                            <option th:each="f : ${files}" th:value="${f.name}"
+                                    th:text="|${f.name} (${f.size})|"></option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100"
+                            onclick="return confirm('确定要恢复数据库吗？此操作将覆盖当前所有数据！')">
+                        <i class="bi bi-arrow-counterclockwise"></i> 执行恢复
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 备份文件列表 -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-folder2-open"></i> 备份文件列表</h5>
+            </div>
+            <div class="card-body">
+                <div th:if="${files != null and !files.isEmpty()}">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>文件名</th>
+                            <th>类型</th>
+                            <th>大小</th>
+                            <th>时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="f : ${files}">
+                            <td><i class="bi bi-file-earmark-zip"></i> <span th:text="${f.name}"></span></td>
+                            <td>
+                                <span class="badge bg-primary" th:if="${f.type == '完整备份'}" th:text="${f.type}"></span>
+                                <span class="badge bg-success" th:if="${f.type != '完整备份' and f.type == '差异备份'}" th:text="${f.type}"></span>
+                                <span class="badge bg-info" th:if="${f.type != '完整备份' and f.type != '差异备份'}" th:text="${f.type}"></span>
+                            </td>
+                            <td th:text="${f.size}"></td>
+                            <td><small th:text="${f.time}"></small></td>
+                            <td>
+                                <a th:href="@{'/backup/download/' + ${f.name}}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                <form method="post" th:action="@{/backup/delete}" style="display:inline"
+                                      onsubmit="return confirm('确定删除此备份文件吗？')">
+                                    <input type="hidden" name="filename" th:value="${f.name}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+                <div class="text-center text-muted py-5" th:unless="${files != null and !files.isEmpty()}">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                    <p class="mt-2">暂无备份文件</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<footer th:replace="~{base :: footer}"></footer>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tqh.studentmanage.mapper.OperationLogMapper">
+
+    <select id="selectFiltered" resultType="com.tqh.studentmanage.entity.OperationLog">
+        SELECT log_id, username, operation, table_name, record_id, old_value, new_value,
+               CONVERT(VARCHAR(19), op_time, 120) AS op_time
+        FROM OperationLog
+        <where>
+            <if test="tableName != null and tableName != ''">
+                AND table_name = #{tableName}
+            </if>
+            <if test="operation != null and operation != ''">
+                AND operation = #{operation}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (record_id LIKE #{keyword} OR old_value LIKE #{keyword} OR new_value LIKE #{keyword})
+            </if>
+        </where>
+        ORDER BY op_time DESC
+    </select>
+
+    <select id="selectDistinctTables" resultType="string">
+        SELECT DISTINCT table_name FROM OperationLog ORDER BY table_name
+    </select>
+</mapper>

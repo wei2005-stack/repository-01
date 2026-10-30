@@ -1,0 +1,40 @@
+<!-- 分页组件 -->
+<div th:fragment="pagination(page, totalPages, total, queryString)"
+     th:with="startPage=${page - 2 < 1 ? 1 : page - 2}, endPage=${page + 2 > totalPages ? totalPages : page + 2}"
+     th:if="${totalPages > 1}">
+    <nav aria-label="分页导航">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted">
+                <small th:text="'共 ' + ${total} + ' 条记录，第 ' + ${page} + '/' + ${totalPages} + ' 页'"></small>
+            </div>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" th:classappend="${page == 1} ? 'disabled'">
+                    <a class="page-link" th:href="${'?page=1' + queryString}">首页</a>
+                </li>
+                <li class="page-item" th:classappend="${page == 1} ? 'disabled'">
+                    <a class="page-link" th:href="${'?page=' + (page - 1) + queryString}">上一页</a>
+                </li>
+
+                <li class="page-item disabled" th:if="${startPage > 1}">
+                    <span class="page-link">...</span>
+                </li>
+
+                <li class="page-item" th:each="p : ${#numbers.sequence(startPage, endPage)}"
+                    th:classappend="${p == page} ? 'active'">
+                    <a class="page-link" th:href="${'?page=' + p + queryString}" th:text="${p}"></a>
+                </li>
+
+                <li class="page-item disabled" th:if="${endPage < totalPages}">
+                    <span class="page-link">...</span>
+                </li>
+
+                <li class="page-item" th:classappend="${page == totalPages} ? 'disabled'">
+                    <a class="page-link" th:href="${'?page=' + (page + 1) + queryString}">下一页</a>
+                </li>
+                <li class="page-item" th:classappend="${page == totalPages} ? 'disabled'">
+                    <a class="page-link" th:href="${'?page=' + totalPages + queryString}">末页</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</div>

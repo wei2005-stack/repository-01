@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 学籍管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10%;
+            font-family: "Microsoft YaHei", sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 背景图片轮播 */
+        .bg-slideshow {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+        }
+        .bg-slideshow img {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+        .bg-slideshow img.active {
+            opacity: 1;
+        }
+        /* 暗色遮罩 */
+        .bg-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: -1;
+        }
+
+        .login-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            overflow: hidden;
+            width: 420px;
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.95);
+        }
+        .login-header {
+            background: rgba(255,255,255,0.95);
+            padding: 2rem;
+            text-align: center;
+        }
+        .login-header i {
+            font-size: 3rem;
+            color: #667eea;
+        }
+        .login-header h3 {
+            margin-top: 0.5rem;
+            color: #333;
+            font-weight: bold;
+        }
+        .login-body {
+            background: rgba(255,255,255,0.95);
+            padding: 0 2rem 2rem;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #fff;
+            transition: all 0.3s;
+        }
+        .btn-login:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            color: #fff;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景图片轮播 -->
+    <div class="bg-slideshow">
+        <img src="/static/picture/CW3A4850.jpg" class="active" alt="">
+        <img src="/static/picture/DSC06572.jpg" alt="">
+        <img src="/static/picture/Image_196877048367119.jpg" alt="">
+        <img src="/static/picture/Image_196881194423734.jpg" alt="">
+        <img src="/static/picture/Image_196884097137273.jpg" alt="">
+    </div>
+    <div class="bg-overlay"></div>
+
+    <!-- 左上角 Logo -->
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 10;">
+        <img src="/static/logo.png" alt="Logo" style="height: 80px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+    </div>
+
+    <!-- 登录卡片 -->
+    <div class="login-card">
+        <div class="login-header">
+            <i class="bi bi-mortarboard-fill"></i>
+            <h3>高校学籍管理系统</h3>
+            <p class="text-muted mb-0">数据库课程设计</p>
+        </div>
+        <div class="login-body">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${error != null}">
+                <i class="bi bi-exclamation-circle"></i> <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <form method="post" action="/login">
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-person"></i> 用户名
+                    </label>
+                    <input type="text" name="username" class="form-control form-control-lg"
+                           placeholder="请输入用户名" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-lock"></i> 密码
+                    </label>
+                    <input type="password" name="password" class="form-control form-control-lg"
+                           placeholder="请输入密码" required>
+                </div>
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-login">
+                        <i class="bi bi-box-arrow-in-right"></i> 登 录
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 背景图片轮播
+        const images = document.querySelectorAll('.bg-slideshow img');
+        let current = 0;
+        setInterval(() => {
+            images[current].classList.remove('active');
+            current = (current + 1) % images.length;
+            images[current].classList.add('active');
+        }, 4000); // 每4秒切换一张
+    </script>
+</body>
+</html>
